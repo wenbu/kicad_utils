@@ -1,0 +1,24 @@
+(kicad_pcb (version 4) (host pcbnew "(2015-03-11 BZR 5507)-product")
+  (general
+    (links 644)
+    (area 95.046799 16.971 417.715701 223.4415)
+  )
+
+  (module bwu-keyboard:bwu-electrolyte-capacitor-0805 (layer F.Cu) (tedit 55C98A20) (tstamp 599A74A3)
+    (at 263.525 198.4375)
+    (fp_text value 1µF (at 0 2.1) (layer F.Fab)
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (fp_text reference CON1 (at 0 6) (layer F.SilkS) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (fp_line (start -2.54 0) (end -3.048 0) (layer F.SilkS) (width 0.15))
+    (pad 1 smd rect (at -1.25 0) (size 1.5 1.25) (layers F.Cu F.Paste F.Mask)
+      (net 1 /VCC))
+    (model Capacitors_SMD.3dshapes/C_0805_HandSoldering.wrl
+      (at (xyz 0 0 0))
+      (scale (xyz 1 1 1))
+      (rotate (xyz 0 0 0))
+    )
+  )
+)
