@@ -2,18 +2,18 @@ class KicadPcbWriter:
     def __init__(self, indent_size=2):
         self.indent_size = indent_size
 
-    def write(self, file_path, tags):
+    def write(self, file_path, nodes):
         with open(file_path, 'w') as f:
-            for line in self.get_lines(tags):
+            for line in self.get_lines(nodes):
                 f.write(line + '\n')
 
-    def get_lines(self, tags):
+    def get_lines(self, nodes):
         lines = []
 
-        # list of tuples: tags, indent levels, number of tags to close
-        tags_to_process = [(tag, 0, 0) for tag in tags]
-        while len(tags_to_process) != 0:
-            current_tag, indent_level, num_closures = tags_to_process.pop()
+        # list of tuples: nodes, indent levels, number of nodes to close
+        nodes_to_process = [(node, 0, 0) for node in nodes]
+        while len(nodes_to_process) != 0:
+            current_node, indent_level, num_closures = nodes_to_process.pop()
 
             current_line = []
             # Subtract one since the join operation at the end of the while
@@ -22,11 +22,11 @@ class KicadPcbWriter:
             if starting_indent:
                 current_line.append(starting_indent)
 
-            current_line.append('(%s' % current_tag['name'])
-            for arg in current_tag['args']:
+            current_line.append('(%s' % current_node['name'])
+            for arg in current_node['args']:
                 current_line.append(str(arg))
 
-            children = current_tag['children']
+            children = current_node['children']
 
             # If no children, we can close ourselves and output the closing
             # parens from ancestors now.
@@ -53,7 +53,7 @@ class KicadPcbWriter:
                 num_closures_for_child = 0
                 if is_last_child and not can_close_now:
                     num_closures_for_child = num_closures + 1
-                tags_to_process.append((child, \
+                nodes_to_process.append((child, \
                                         indent_level + 1, \
                                         num_closures_for_child))
 
