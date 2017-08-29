@@ -1,60 +1,41 @@
+from KicadPcbNode import KicadPcbNode
+
 class KicadPcbWriter:
     def __init__(self, indent_size=2):
         self.indent_size = indent_size
 
     def write(self, file_path, nodes):
         with open(file_path, 'w') as f:
-            for line in self.get_lines(nodes):
-                f.write(line + '\n')
+            for node in nodes:
+                f.write(''.join(self._handle_node(node)) + '\n')
 
-    def get_lines(self, nodes):
-        lines = []
+    # returns a list of string components to be joined
+    def _handle_node(self, node, indent_level=0):
+        output = []
 
-        # list of tuples: nodes, indent levels, number of nodes to close
-        nodes_to_process = [(node, 0, 0) for node in nodes]
-        while len(nodes_to_process) != 0:
-            current_node, indent_level, num_closures = nodes_to_process.pop()
+        indent = ' ' * (indent_level * self.indent_size)
+        # An initial newline is only needed if we are not handling a
+        # root-level node. 
+        initial_newline = indent_level != 0
+        output.append('%s%s(%s' % ('\n' if initial_newline else '', \
+                                   indent if indent else '', \
+                                   node.name))
 
-            current_line = []
-            # Subtract one since the join operation at the end of the while
-            # loop adds an extra space
-            starting_indent = ' ' * (indent_level * self.indent_size - 1)
-            if starting_indent:
-                current_line.append(starting_indent)
+        def is_last_child(i):
+            return i == len(node.children) - 1
 
-            current_line.append('(%s' % current_node['name'])
-            for arg in current_node['args']:
-                current_line.append(str(arg))
+        for i, child in enumerate(node.children):
+            if isinstance(child, KicadPcbNode):
+                output.extend(self._handle_node(child, indent_level + 1))
 
-            children = current_node['children']
+                # If the last child is a node, put my closing paren on
+                # a newline with appropriate indent.
+                if is_last_child(i):
+                    output.append('\n%s)' % indent)
+            else:
+                # If the last child is a string or number, put my closing
+                # paren on the same line.
+                output.append(' %s%s' % (str(child),\
+                                         ')' if is_last_child(i) else ''))
 
-            # If no children, we can close ourselves and output the closing
-            # parens from ancestors now.
-            # Otherwise, push these onto the last child.
-            can_close_now = (len(children) == 0)
-
-            final_line = ' '.join(current_line)
-            if can_close_now:
-                final_line += ')'
-            lines.append(final_line)
-
-            if can_close_now:
-                for i in range(num_closures):
-                    indent_level -= 1
-                    indent = ' ' * (indent_level * self.indent_size)
-                    lines.append('%s)' % indent)
-
-            # reverse children since we are adding them to a stack but still
-            # want to visit them in the same order
-            # could've just made it a queue but oh well
-            for i, child in enumerate(children[::-1]):
-                # last child is the one with index 0 due to reverse
-                is_last_child = (i == 0)
-                num_closures_for_child = 0
-                if is_last_child and not can_close_now:
-                    num_closures_for_child = num_closures + 1
-                nodes_to_process.append((child, \
-                                        indent_level + 1, \
-                                        num_closures_for_child))
-
-        return lines
+        return output
