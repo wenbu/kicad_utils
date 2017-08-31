@@ -1,4 +1,4 @@
-from KicadPcbNode import KicadPcbNode
+from Module import Module
 
 # This class makes some assumptions about the structure of
 # the node hierarchy -- namely, that all module nodes are
@@ -11,11 +11,9 @@ class ModuleFinder:
 	def find_modules(self, nodes):
 		kicad_pcb_node = nodes[0]
 		if kicad_pcb_node.name != 'kicad_pcb':
-			raise
+			raise Exception("Root node name is not kicad_pcb but is %s!" %
+				            kicad_pcb_node.name)
 
-		modules = []
-		for child in kicad_pcb_node.children:
-			if child.name == 'module':
-				modules.append(child)
-
-		return modules
+		return [Module(c) \
+		        for c \
+		        in kicad_pcb_node.get_children_with_name('module')]

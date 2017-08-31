@@ -16,6 +16,10 @@ class KicadPcbNode:
     def add_child(self, child):
         self.children.append(_coerce(child))
 
+    def get_children_with_name(self, name):
+        return [c for c in self.children \
+                if isinstance(c, KicadPcbNode) and c.name == name]
+
     def __str__(self):
         return '<%s>' % self.name
 
