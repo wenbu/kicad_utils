@@ -1,3 +1,5 @@
+from KicadPcbNode import KicadPcbNode
+
 class KicadPcbWriter:
     def __init__(self, indent_size=2):
         self.indent_size = indent_size
