@@ -4,7 +4,7 @@ from KicadPcbNode import KicadPcbNode
 '''
 Parse the kicad_pcb file into a list of KicadNodes
 '''
-class KicadPcbParser:
+class KicadPcbParser(object):
     def __init__(self):
         self._nodes = []
         self._nodes_in_progress = []
@@ -63,7 +63,7 @@ class KicadPcbParser:
 
         # If there is already a node in progress, then this new one must be
         # a child of the current node.
-        if len(self._nodes_in_progress) > 0:
+        if self._nodes_in_progress:
             current_node = self._nodes_in_progress[-1]
             current_node.add_child(new_node)
 
@@ -72,11 +72,11 @@ class KicadPcbParser:
     def _handle_closed_node(self, num_nodes_to_close=1):
         for i in range(num_nodes_to_close):
             closed_node = self._nodes_in_progress.pop()
-            if len(self._nodes_in_progress) == 0:
+            if not self._nodes_in_progress:
                 self._nodes.append(closed_node)
 
     def _handle_arg(self, token):
-        if len(token) == 0:
+        if not token:
             return
         current_node = self._nodes_in_progress[-1]
         current_node.add_child(token)

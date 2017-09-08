@@ -1,68 +1,68 @@
 from KicadPcbNode import KicadPcbNode
 
-class Module:
-	def __init__(self, node):
-		self.node = node
-		self._get_name()
-		self.x, self.y, self.r = self._get_position_and_rotation(node)
-		self._get_pads()
+class Module(object):
+    def __init__(self, node):
+        self.node = node
+        self._get_name()
+        self.x, self.y, self.r = self._get_position_and_rotation(node)
+        self._get_pads()
 
-	def _get_name(self):
-		# look for node with name 'fp_text' whose first child is 'reference'
-		# use the second child of this node as our name
-		for child in self.node.get_children_with_name('fp_text'):
-			fp_text_children = child.children
-			if fp_text_children[0] == 'reference':
-				self.name = fp_text_children[1]
-				break
-			else:
-				continue
+    def _get_name(self):
+        # look for node with name 'fp_text' whose first child is 'reference'
+        # use the second child of this node as our name
+        for child in self.node.get_children_with_name('fp_text'):
+            fp_text_children = child.children
+            if fp_text_children[0] == 'reference':
+                self.name = fp_text_children[1]
+                break
+            else:
+                continue
 
-		if not self.name:
-			raise Exception("Couldn't find a name!")
+        if not self.name:
+            raise Exception("Couldn't find a name!")
 
-	# Looks for a child of the specified node named 'at' and extracts position
-	# and rotation information from it.
-	def _get_position_and_rotation(self, node):
-		at_node = self._get_at_node(node)
-		at_children = at_node.children
+    # Looks for a child of the specified node named 'at' and extracts position
+    # and rotation information from it.
+    def _get_position_and_rotation(self, node):
+        at_node = self._get_at_node(node)
+        at_children = at_node.children
 
-		x, y = [float(x) for x in at_children[:2]]
-		r = int(at_children[2]) if len(at_children) == 3 else 0
-		return (x, y, r)
+        x, y = [float(x) for x in at_children[:2]]
+        r = int(at_children[2]) if len(at_children) == 3 else 0
+        return (x, y, r)
 
-	def _get_at_node(self, node):
-		if not isinstance(node, KicadPcbNode):
-			return None
-		at_nodes = node.get_children_with_name('at')
+    def _get_at_node(self, node):
+        if not isinstance(node, KicadPcbNode):
+            return None
+        at_nodes = node.get_children_with_name('at')
 
-		if len(at_nodes) == 0:
-			return None
-		elif len(at_nodes) == 1:
-			return at_nodes[0]
-		else:
-			assert len(at_nodes) <= 1, "Unexpected number of child nodes" + \
-				     	               " with name 'at': %d" % len(at_nodes)
+        if len(at_nodes) == 0:
+            return None
+        elif len(at_nodes) == 1:
+            return at_nodes[0]
+        else:
+            assert len(at_nodes) <= 1, "Unexpected number of child nodes" + \
+                                       " with name 'at': %d" % len(at_nodes)
 
-	def _get_pads(self):
-		self.pads = self.node.get_children_with_name('pad')
+    def _get_pads(self):
+        self.pads = self.node.get_children_with_name('pad')
 
 
-	def set_position(self, x, y):
-		self.x, self.y = x, y
-		self._get_at_node(self.node).children = [x, y, self.r]
+    def set_position(self, x, y):
+        self.x, self.y = x, y
+        self._get_at_node(self.node).children = [x, y, self.r]
 
-	def set_rotation(self, r):
-		self.r = r
-		# KiCAD's rotation direction is clockwise
-		self._get_at_node(self.node).children = [self.x, self.y, -r]
-		for child in self.node.children:
-			child_at_node = self._get_at_node(child)
-			if child_at_node is not None:
-				if child.name == 'model':
-					continue
-				cx, cy, cr = self._get_position_and_rotation(child)
-				child_at_node.children = [cx, cy, cr - r]
+    def set_rotation(self, r):
+        self.r = r
+        # KiCAD's rotation direction is clockwise
+        self._get_at_node(self.node).children = [self.x, self.y, -r]
+        for child in self.node.children:
+            child_at_node = self._get_at_node(child)
+            if child_at_node is not None:
+                if child.name == 'model':
+                    continue
+                cx, cy, cr = self._get_position_and_rotation(child)
+                child_at_node.children = [cx, cy, cr - r]
 
-	def __str__(self):
-		return "Module[%s, (%f, %f), %d]" % (self.name, self.x, self.y, self.r)
+    def __str__(self):
+        return "Module[%s, (%f, %f), %d]" % (self.name, self.x, self.y, self.r)

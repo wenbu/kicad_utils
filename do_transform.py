@@ -1,7 +1,7 @@
 from KicadPcbParser import KicadPcbParser
 from KicadPcbWriter import KicadPcbWriter
 from ModuleFinder import ModuleFinder
-from Transform2d import rotateAboutPivot
+from Transform2d import rotate_about_pivot
 
 parser = KicadPcbParser()
 nodes = parser.parse('../keyboard/gaia/gaia.kicad_pcb')
@@ -25,13 +25,13 @@ right_thumb_pivot = (304.8, 123.825)
 
 for left_thumb_module in left_thumbs:
 	x, y, r = left_thumb_module.x, left_thumb_module.y, left_thumb_module.r
-	nx, ny = rotateAboutPivot(x, y, 30, *left_thumb_pivot)
+	nx, ny = rotate_about_pivot(x, y, 30, *left_thumb_pivot)
 	left_thumb_module.set_position(nx, ny)
 	left_thumb_module.set_rotation(r + 30)
 
 for right_thumb_module in right_thumbs:
 	x, y, r = right_thumb_module.x, right_thumb_module.y, right_thumb_module.r
-	nx, ny = rotateAboutPivot(x, y, -30, *right_thumb_pivot)
+	nx, ny = rotate_about_pivot(x, y, -30, *right_thumb_pivot)
 	right_thumb_module.set_position(nx, ny)
 	right_thumb_module.set_rotation(r - 30)
 

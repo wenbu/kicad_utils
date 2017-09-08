@@ -1,6 +1,6 @@
 from KicadPcbNode import KicadPcbNode
 
-class KicadPcbWriter:
+class KicadPcbWriter(object):
     def __init__(self, indent_size=2):
         self.indent_size = indent_size
 
@@ -15,7 +15,7 @@ class KicadPcbWriter:
 
         indent = ' ' * (indent_level * self.indent_size)
         # An initial newline is only needed if we are not handling a
-        # root-level node. 
+        # root-level node.
         initial_newline = indent_level != 0
         output.append('%s%s(%s' % ('\n' if initial_newline else '', \
                                    indent if indent else '', \
