@@ -1,9 +1,16 @@
+'''
+Functions for transforming 2D points.
+'''
 from math import radians, sin, cos
 from numpy import array, identity
 from numpy.linalg import inv
 
+# pylint: disable=invalid-name, bad-whitespace, unused-variable
+
 def rotate_about_pivot(px, py, rotation, rpx, rpy):
-    """Rotate a point (px, py) about the point (rpx, rpy) by rotation degrees."""
+    '''
+    Rotate a point (px, py) about the point (rpx, rpy) by rotation degrees.
+    '''
     rotate_pivot_matrix = identity(3)
     rotate_pivot_matrix[:2, 2] = array([rpx, rpy])
 
