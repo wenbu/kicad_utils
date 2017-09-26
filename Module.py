@@ -67,8 +67,8 @@ class Module(object):
                 if child.name == 'model':
                     continue
                 # pylint: disable=invalid-name
-                cx, cy, cr = _get_position_and_rotation(child)
-                child_at_node.children = [cx, cy, cr - r]
+                cx, cy, _ = _get_position_and_rotation(child)
+                child_at_node.children = [cx, cy, -r]
 
     def __str__(self):
         return "Module[%s, (%f, %f), %d]" % (self.name, self.x, self.y, self.r)
