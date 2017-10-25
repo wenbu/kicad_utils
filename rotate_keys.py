@@ -3,7 +3,6 @@ Rotate components on Gaia PCB.
 '''
 from KicadPcbNode import parse_file, write_file
 from Module import find_modules
-from Transform2d import rotate_about_pivot
 import re
 
 # pylint: disable=all
@@ -29,17 +28,9 @@ left_thumb_pivot = (209.55, 123.825)
 right_thumb_pivot = (304.8, 123.825)
 
 for left_thumb_module in left_thumbs:
-    x, y, r = left_thumb_module.x, left_thumb_module.y, left_thumb_module.r
-    #nx, ny = rotate_about_pivot(x, y, 30, *left_thumb_pivot)
-    #left_thumb_module.set_position(nx, ny)
-    #left_thumb_module.set_rotation(r + 30)
     left_thumb_module.transform(r=-30, rp=left_thumb_pivot)
 
 for right_thumb_module in right_thumbs:
-    x, y, r = right_thumb_module.x, right_thumb_module.y, right_thumb_module.r
-    #nx, ny = rotate_about_pivot(x, y, -30, *right_thumb_pivot)
-    #right_thumb_module.set_position(nx, ny)
-    #right_thumb_module.set_rotation(r - 30)
     right_thumb_module.transform(r=30, rp=right_thumb_pivot)
 
 # move right side keys to correct position
@@ -68,13 +59,9 @@ dx_7 = target_x_7 - s1_7.x
 dy = target_y - s1_7.y
 
 for left_side_key in left_side:
-    #left_side_key.set_position(left_side_key.x + dx_6,
-    #                           left_side_key.y + dy)
     left_side_key.transform(t=(dx_6, dy))
 
 for right_side_key in right_side:
-    #right_side_key.set_position(right_side_key.x + dx_7,
-    #                            right_side_key.y + dy)
     right_side_key.transform(t=(dx_7, dy))
 
 
@@ -82,17 +69,10 @@ for right_side_key in right_side:
 
 left_pivot = (s1_6.x, s1_6.y)
 for left_side_key in left_side:
-    #nx, ny = rotate_about_pivot(left_side_key.x, left_side_key.y, 10, *left_pivot)
-    #left_side_key.set_position(nx, ny)
-    #left_side_key.set_rotation(left_side_key.r + 10)
     left_side_key.transform(r=-10, rp=left_pivot)
 
 right_pivot = (s1_7.x, s1_7.y)
 for right_side_key in right_side:
-    #nx, ny = rotate_about_pivot(right_side_key.x, right_side_key.y, -10, *right_pivot)
-    #right_side_key.set_position(nx, ny)
-    #right_side_key.set_rotation(right_side_key.r - 10)
     right_side_key.transform(r=10, rp=right_pivot)
-
 
 write_file(GAIA_PATH, nodes)

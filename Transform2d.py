@@ -2,6 +2,7 @@
 Functions for transforming 2D points.
 '''
 from math import radians, sin, cos
+from abc import ABCMeta, abstractmethod
 from numpy import array, identity
 from numpy.linalg import inv
 
@@ -57,3 +58,23 @@ def get_translation_matrix(t = (0, 0)):
     t_matrix = identity(3)
     t_matrix[:2, 2] = array(t)
     return t_matrix
+
+class Transformable(object):
+    '''
+    ABC for a class that can be transformed.
+    '''
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def transform(self, t = (0, 0), r = 0, rp = (0, 0)):
+        """Transform this node using the supplied values.
+        Transformation order is RT. Scaling is not supported.
+
+        Keyword arguments:
+        t -- translation vector
+        r -- rotation, in degrees. Note that KiCAD's rotation direction is clockwise.
+        rp -- rotation pivot
+
+        All of these default to zero.
+        """
+        pass

@@ -3,9 +3,8 @@ Classes and functions related to kicad_pcb module nodes.
 '''
 from KicadPcbNode import KicadPcbNode
 from KicadPcbNode import find_nodes
-from Transformable import Transformable
 from numpy import array
-from Transform2d import get_rotation_matrix, get_translation_matrix
+from Transform2d import Transformable, get_rotation_matrix, get_translation_matrix
 
 def find_modules(nodes):
     ''' Get a list of Modules from a list of KicadPcbNodes. '''
