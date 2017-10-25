@@ -37,8 +37,21 @@ class KicadPcbNode(object):
         return [c for c in self.children \
                 if isinstance(c, KicadPcbNode) and c.name == name]
 
+    def get_child_with_name(self, name):
+        '''
+        Return the KicadPcbNode child of this KicadPcbNode with the specified name.
+        This child must be the only child with the specified name; an exception
+        will be raised otherwise.
+        '''
+        children_with_name = self.get_children_with_name(name)
+        if len(children_with_name) != 1:
+            raise Exception('Node %s has %d children with name %s.' %
+                            (self.name, len(children_with_name), name))
+
+        return children_with_name[0]
+
     def __str__(self):
-        return '<%s>' % self.name
+        return '<%s> %s' % (self.name, [c.__str__() for c in self.children])
 
 def parse_file(kicad_pcb_file_path):
     '''
@@ -170,3 +183,18 @@ def _write_node(node, indent_level=0):
                                      ')' if _is_last_child(i) else ''))
 
     return output
+
+def find_nodes(nodes, node_class):
+    '''
+    Get a list of node_class from a list of KicadPcbNodes.
+    node_class is assumed to have a class variable named 'node_type_name'
+    that contains the node name to filter for.
+    '''
+    kicad_pcb_node = nodes[0]
+    if kicad_pcb_node.name != 'kicad_pcb':
+        raise Exception('Root node name is not kicad_pcb but is %s!' %
+                        kicad_pcb_node.name)
+
+    return [node_class(c) \
+            for c \
+            in kicad_pcb_node.get_children_with_name(node_class.node_type_name)]
