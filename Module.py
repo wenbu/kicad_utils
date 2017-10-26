@@ -20,11 +20,11 @@ class Module(Transformable):
     def __init__(self, node):
         # pylint: disable=invalid-name
         self._node = node
-        self._get_name()
+        self._init_name()
         self.x, self.y, self.r = _get_position_and_rotation(node)
-        self._get_pads()
+        self._pads = self._node.get_children_with_name('pad')
 
-    def _get_name(self):
+    def _init_name(self):
         # look for node with name 'fp_text' whose first child is 'reference'
         # use the second child of this node as our name
         for child in self._node.get_children_with_name('fp_text'):
@@ -38,8 +38,17 @@ class Module(Transformable):
         if not self.name:
             raise Exception("Couldn't find a name!")
 
-    def _get_pads(self):
-        self._pads = self._node.get_children_with_name('pad')
+    def transform(self, t=(0, 0), r=0, rp=(0, 0)):
+        T = get_translation_matrix(t=t)
+        R = get_rotation_matrix(r=r, rp=rp)
+        transform = T.dot(R)
+
+        position = array([self.x, self.y, 1])
+        self.x, self.y, _ = transform.dot(position).round(5)
+        self._update_position()
+
+        self.r += r
+        self._update_rotation()
 
     # Call this after changing self.x or self.y to update the underlying
     # KicadPcbNode.
@@ -59,20 +68,6 @@ class Module(Transformable):
                     continue
                 cx, cy, cr = _get_position_and_rotation(child)
                 child_at_node.children = [cx, cy, cr + dr]
-
-    def transform(self, t=(0, 0), r=0, rp=(0, 0)):
-        T = get_translation_matrix(t=t)
-        R = get_rotation_matrix(r=r, rp=rp)
-        transform = T.dot(R)
-
-        position = array([self.x, self.y, 1])
-        self.x, self.y, _ = transform.dot(position).round(5)
-        self._update_position()
-
-        self.r += r
-        self._update_rotation()
-
-
 
     def __str__(self):
         return "Module[%s, (%f, %f), %d]" % (self.name, self.x, self.y, self.r)

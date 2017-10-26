@@ -3,6 +3,7 @@ Rotate components on Gaia PCB.
 '''
 from KicadPcbNode import parse_file, write_file
 from Module import find_modules
+from Segment import find_segments
 import re
 
 # pylint: disable=all
@@ -11,6 +12,7 @@ GAIA_PATH = '../../../keyboard/gaia/gaia.kicad_pcb'
 
 nodes = parse_file(GAIA_PATH)
 modules = find_modules(nodes)
+segments = find_segments(nodes)
 
 # rotate thumb keys
 # find 5:5, 5:6 (L) and 5:7, 5:8 (R)

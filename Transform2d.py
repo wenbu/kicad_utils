@@ -72,7 +72,7 @@ class Transformable(object):
 
         Keyword arguments:
         t -- translation vector
-        r -- rotation, in degrees. Note that KiCAD's rotation direction is clockwise.
+        r -- counterclockwise rotation, in degrees
         rp -- rotation pivot
 
         All of these default to zero.
