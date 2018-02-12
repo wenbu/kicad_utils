@@ -59,6 +59,17 @@ def get_translation_matrix(t = (0, 0)):
     t_matrix[:2, 2] = array(t)
     return t_matrix
 
+def transform(list_of_transformables, t=(0,0), r=0, rp=(0,0)):
+    for transformable in list_of_transformables:
+        transformable.transform(t, r, rp)
+
+def transform_point(x, y, t=(0,0), r=0, rp=(0,0)):
+    T = get_translation_matrix(t=t)
+    R = get_rotation_matrix(r=r, rp=rp)
+    transform = T.dot(R)
+
+    return tuple(transform.dot(array([x, y, 1])).round(5)[:2])
+
 class Transformable(object):
     '''
     ABC for a class that can be transformed.

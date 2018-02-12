@@ -4,7 +4,7 @@ Classes and functions related to kicad_pcb module nodes.
 from KicadPcbNode import KicadPcbNode
 from KicadPcbNode import find_nodes
 from numpy import array
-from Transform2d import Transformable, get_rotation_matrix, get_translation_matrix
+from Transform2d import Transformable, get_rotation_matrix, get_translation_matrix, transform_point
 
 def find_modules(nodes):
     ''' Get a list of Modules from a list of KicadPcbNodes. '''
@@ -18,6 +18,18 @@ class Module(Transformable):
     node_type_name = 'module'
 
     def __init__(self, node):
+        '''
+        A module has the following attributes:
+         - layer: layer
+         - tedit: ??
+         - tstamp: timestamp (of last edit?)
+         - at: position (x, y)
+         - attr: ??
+         - fp_text: text; can be multiple
+         - fp_line: line; can be multiple
+         - pad: pad; can be multiple
+         - model: 3d model for 3d preview
+        '''
         # pylint: disable=invalid-name
         self._node = node
         self._init_name()
@@ -69,8 +81,19 @@ class Module(Transformable):
                 cx, cy, cr = _get_position_and_rotation(child)
                 child_at_node.children = [cx, cy, cr + dr]
 
+    def get_position(self):
+        return (self.x, self.y)
+
+    def get_pad_positions(self):
+        return [transform_point(self.x + pad_x, self.y + pad_y, r=self.r, rp=(self.x, self.y)) \
+                for pad_x, pad_y, _ \
+                in map(_get_position_and_rotation, self._pads)]
+
     def __str__(self):
         return "Module[%s, (%f, %f), %d]" % (self.name, self.x, self.y, self.r)
+
+    def __repr__(self):
+        return self.__str__()
 
 # Looks for a child of the specified node named 'at' and extracts position
 # and rotation information from it.

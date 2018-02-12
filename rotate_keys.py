@@ -1,18 +1,31 @@
 '''
 Rotate components on Gaia PCB.
 '''
-from KicadPcbNode import parse_file, write_file
-from Module import find_modules
-from Segment import find_segments
+from nodes.KicadPcbNode import parse_file, write_file
+from nodes.Module import find_modules, Module
+from nodes.Segment import find_segments
+from nodes.Via import find_vias
 import re
+from quadtree.quadtree import Quadtree
+from nodes.Transform2d import transform
 
 # pylint: disable=all
 
 GAIA_PATH = '../../../keyboard/gaia/gaia.kicad_pcb'
+GAIA_OUTPUT = '../../../keyboard/gaia/gaia2.kicad_pcb'
 
 nodes = parse_file(GAIA_PATH)
 modules = find_modules(nodes)
 segments = find_segments(nodes)
+vias = find_vias(nodes)
+
+quadtree = Quadtree()
+for module in modules:
+    quadtree.insert(module)
+for segment in segments:
+    quadtree.insert(segment)
+for via in vias:
+    quadtree.insert(via)
 
 # rotate thumb keys
 # find 5:5, 5:6 (L) and 5:7, 5:8 (R)
@@ -29,13 +42,17 @@ for module in modules:
 left_thumb_pivot = (209.55, 123.825)
 right_thumb_pivot = (304.8, 123.825)
 
-for left_thumb_module in left_thumbs:
-    left_thumb_module.transform(r=-30, rp=left_thumb_pivot)
+left_thumbs = quadtree.get_connected(left_thumbs)
+right_thumbs = quadtree.get_connected(right_thumbs)
 
-for right_thumb_module in right_thumbs:
-    right_thumb_module.transform(r=30, rp=right_thumb_pivot)
+for left_thumb_node in left_thumbs:
+    left_thumb_node.transform(r=-30, rp=left_thumb_pivot)
+    quadtree.update(left_thumb_node)
 
-# move right side keys to correct position
+for right_thumb_node in right_thumbs:
+    right_thumb_node.transform(r=30, rp=right_thumb_pivot)
+    quadtree.update(right_thumb_node)
+
 left_side = []
 right_side = []
 key_pattern = re.compile('S([0-9]+):([0-9]+)')
@@ -60,21 +77,26 @@ dx_6 = target_x_6 - s1_6.x
 dx_7 = target_x_7 - s1_7.x
 dy = target_y - s1_7.y
 
-for left_side_key in left_side:
-    left_side_key.transform(t=(dx_6, dy))
+left_side = quadtree.get_connected(left_side)
+right_side = quadtree.get_connected(right_side)
 
-for right_side_key in right_side:
-    right_side_key.transform(t=(dx_7, dy))
+for left_side_node in left_side:
+    left_side_node.transform(t=(dx_6, dy))
+    quadtree.update(left_side_node)
+
+for right_side_node in right_side:
+    right_side_node.transform(t=(dx_7, dy))
+    quadtree.update(right_side_node)
 
 
 # tilt sides up 10 degrees
 
 left_pivot = (s1_6.x, s1_6.y)
-for left_side_key in left_side:
-    left_side_key.transform(r=-10, rp=left_pivot)
+for left_side_node in left_side:
+    left_side_node.transform(r=-10, rp=left_pivot)
 
 right_pivot = (s1_7.x, s1_7.y)
-for right_side_key in right_side:
-    right_side_key.transform(r=10, rp=right_pivot)
+for right_side_node in right_side:
+    right_side_node.transform(r=10, rp=right_pivot)
 
-write_file(GAIA_PATH, nodes)
+write_file(GAIA_OUTPUT, nodes)

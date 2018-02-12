@@ -53,6 +53,28 @@ class KicadPcbNode(object):
     def __str__(self):
         return '<%s> %s' % (self.name, [c.__str__() for c in self.children])
 
+def find_nodes(nodes, node_class):
+    '''
+    Get a list of node_class from a list of KicadPcbNodes.
+    node_class is assumed to have a class variable named 'node_type_name'
+    that contains the node name to filter for.
+    '''
+    kicad_pcb_node = nodes[0]
+    if kicad_pcb_node.name != 'kicad_pcb':
+        raise Exception('Root node name is not kicad_pcb but is %s!' %
+                        kicad_pcb_node.name)
+
+    return [node_class(c) \
+            for c \
+            in kicad_pcb_node.get_children_with_name(node_class.node_type_name)]
+
+'''
+################################################
+#
+# Parser related functions
+#
+################################################
+'''
 def parse_file(kicad_pcb_file_path):
     '''
     Parse a kicad_pcb file into a list of KicadPcbNodes.
@@ -145,6 +167,13 @@ def _coerce(child):
         except ValueError:
             return child
 
+'''
+################################################
+#
+# File writing related functions
+#
+################################################
+'''
 def write_file(file_path, nodes):
     '''
     Write a KicadPcbNode tree to a file.
@@ -183,18 +212,3 @@ def _write_node(node, indent_level=0):
                                      ')' if _is_last_child(i) else ''))
 
     return output
-
-def find_nodes(nodes, node_class):
-    '''
-    Get a list of node_class from a list of KicadPcbNodes.
-    node_class is assumed to have a class variable named 'node_type_name'
-    that contains the node name to filter for.
-    '''
-    kicad_pcb_node = nodes[0]
-    if kicad_pcb_node.name != 'kicad_pcb':
-        raise Exception('Root node name is not kicad_pcb but is %s!' %
-                        kicad_pcb_node.name)
-
-    return [node_class(c) \
-            for c \
-            in kicad_pcb_node.get_children_with_name(node_class.node_type_name)]
