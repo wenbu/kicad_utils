@@ -39,8 +39,19 @@ for module in modules:
     else:
         continue
 
-left_thumb_pivot = (209.55, 123.825)
-right_thumb_pivot = (304.8, 123.825)
+# get thumb pivots
+for module in modules:
+    if module.name == 'S4:5':
+        left_thumb_pivot_base = module.get_position()
+    elif module.name == 'S4:8':
+        right_thumb_pivot_base = module.get_position()
+    else:
+        continue
+
+left_thumb_pivot = (left_thumb_pivot_base[0] + 9.525,
+                    left_thumb_pivot_base[1] + 9.525)
+right_thumb_pivot = (right_thumb_pivot_base[0] - 9.525,
+                     right_thumb_pivot_base[1] + 9.525)
 
 left_thumbs = quadtree.get_connected(left_thumbs)
 right_thumbs = quadtree.get_connected(right_thumbs)

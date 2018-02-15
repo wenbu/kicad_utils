@@ -50,8 +50,6 @@ class Quadtree(object):
         positions = []
         for module in modules:
             pad_positions = [(pad_position, module) for pad_position in module.get_pad_positions()]
-            if module.name == 'S0:4' or module.name == 'S0:5':
-                print [p[0] for p in pad_positions]
             positions.extend(pad_positions)
         visited_positions = set()
 
@@ -64,18 +62,15 @@ class Quadtree(object):
 
         while current_position is not None:
             connected_nodes = self.lookup(current_position)
-            '''
-            connected_nodes.remove(current_node)
-            if self._contains_module(connected_nodes):
-                print 'skipping -- current = %s' % connected_nodes
-                current_position, current_node = self._get_next_position(positions, visited_positions)
-                continue
-                '''
             for connected_node in connected_nodes:
                 if type(connected_node) in desired_return_types:
                     connected.add(connected_node)
                     if isinstance(connected_node, Segment):
                         positions.append((connected_node.get_other_end(current_position), connected_node))
+                        # strictly speaking, there should probably be a net or layer check here so
+                        # that we don't add an unrelated segment on the other side of the board
+                        # that's not actually connected -- but I don't think that's necessary for the
+                        # current use case
                 else:
                     continue
 
@@ -134,24 +129,14 @@ class QuadtreeNode(object):
 
     def lookup(self, position, epsilon=EPSILON):
         if self._is_split():
-            '''
-            dx = abs(self.splitpoint[0] - position[0])
-            dy = abs(self.splitpoint[1] - position[1])
-            if (dx > EPSILON/10 and dx <= EPSILON) or (dy > EPSILON/10 and dy <= EPSILON):
-                ret = []
-                for quadrant in self.quadrants:
-                    qlookup = quadrant.lookup(position, epsilon)
-                    print len(qlookup)
-                    ret.extend(qlookup)
-                return ret
-            else:
-                '''
             return self._get_quadrant(position).lookup(position, epsilon)
         else:
             return [qleaf.node for qleaf in self.leaves \
                     if _distance(qleaf.position, position) <= epsilon]
         # TODO this will miss the cases where the point is within epsilon distance
         # of this qnode's boundary
+        # but this is fine for our use case since we generally don't have non-equal
+        # points that close together
 
     def insert_leaf(self, qleaf):
         self.leaves.append(qleaf)
