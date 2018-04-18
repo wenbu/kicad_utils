@@ -11,13 +11,16 @@ from nodes.Transform2d import transform
 
 # pylint: disable=all
 
-GAIA_PATH = '../../../keyboard/gaia/gaia.kicad_pcb'
-GAIA_OUTPUT = '../../../keyboard/gaia/gaia2.kicad_pcb'
+GAIA_PATH = '../keyboard/gaia/gaia.kicad_pcb'
+GAIA_OUTPUT = '../keyboard/gaia/gaia2.kicad_pcb'
 
 nodes = parse_file(GAIA_PATH)
 modules = find_modules(nodes)
 segments = find_segments(nodes)
 vias = find_vias(nodes)
+
+def get_modules(*module_names):
+    return [x for x in modules if x.name in module_names]
 
 quadtree = Quadtree()
 for module in modules:
@@ -28,16 +31,8 @@ for via in vias:
     quadtree.insert(via)
 
 # rotate thumb keys
-# find 5:5, 5:6 (L) and 5:7, 5:8 (R)
-left_thumbs = []
-right_thumbs = []
-for module in modules:
-    if module.name == 'S5:5' or module.name == 'S5:6':
-        left_thumbs.append(module)
-    elif module.name == 'S5:7' or module.name == 'S5:8':
-        right_thumbs.append(module)
-    else:
-        continue
+left_thumbs = get_modules('S5:5', 'S5:6')
+right_thumbs = get_modules('S5:7', 'S5:8')
 
 # get thumb pivots
 for module in modules:
@@ -66,7 +61,7 @@ for right_thumb_node in right_thumbs:
 
 left_side = []
 right_side = []
-key_pattern = re.compile('S([0-9]+):([0-9]+)')
+key_pattern = re.compile('[DS]([0-9]+):([0-9]+)')
 for module in modules:
     match = key_pattern.match(module.name)
     if match:
@@ -75,6 +70,8 @@ for module in modules:
             left_side.append(module)
         else:
             right_side.append(module)
+left_side.extend(get_modules('SW1', 'Y1', 'C4', 'C5'))
+right_side.extend(get_modules('C6', 'C7'))
 
 # move right side such that S1:7 is 24.8063mm to the right of S1:6
 # center around IC3
