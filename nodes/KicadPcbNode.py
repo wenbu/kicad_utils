@@ -234,6 +234,8 @@ def _coerce(child):
         try:
             return float(child)
         except ValueError:
+            if child == '""':
+                return ''
             return child
 
 '''
@@ -277,7 +279,11 @@ def _write_node(node, indent_level=0):
         else:
             # If the last child is a string or number, put my closing
             # paren on the same line.
-            output.append(' %s%s' % (str(child),\
+            if child == '':
+                str_child = '""'
+            else:
+                str_child = str(child)
+            output.append(' %s%s' % (str_child,\
                                      ')' if _is_last_child(i) else ''))
 
     return output
