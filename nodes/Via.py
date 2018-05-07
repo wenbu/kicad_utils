@@ -1,9 +1,9 @@
 '''
 Classes and functions related to kicad_pcb via nodes.
 '''
-from KicadPcbNode import KicadPcbNode, find_nodes
+from nodes.KicadPcbNode import KicadPcbNode, find_nodes
 from numpy import array
-from Transform2d import Transformable, get_rotation_matrix, get_translation_matrix
+from nodes.Transform2d import Transformable, get_rotation_matrix, get_translation_matrix
 
 def find_vias(nodes):
     ''' Get a list of Vias from a list of KicadPcbNodes. '''
@@ -26,7 +26,24 @@ class Via(Transformable):
         '''
         self._node = node
 
-        self.position = array(_get_position(node) + [1])
+        self.position = array(node['at'][0:2] + [1])
+        self.size = node['size']
+        self.drill = node['drill']
+        self.layers = node['layers']
+        self.net = node['net']
+
+    @classmethod
+    def new_via(cls, position=(0.0, 0.0), size=0.889, drill=0.635, layers=('F.Cu', 'B.Cu'), net=0):
+        '''
+        Create a new via.
+        '''
+        node = KicadPcbNode('via')
+        node.add_named_child('at', position)
+        node.add_named_child('size', size)
+        node.add_named_child('drill', drill)
+        node.add_named_child('layers', layers)
+        node.add_named_child('net', net)
+        return cls(node)
 
     def transform(self, t=(0, 0), r=0, rp=(0, 0)):
         T = get_translation_matrix(t=t)
@@ -47,15 +64,6 @@ class Via(Transformable):
 
     def __repr__(self):
         return self.__str__()
-
-# Looks for a child of the specified node named 'at' and extracts position
-# information from it.
-def _get_position(node):
-    at_node = _get_at_node(node)
-    at_children = at_node.children
-
-    # pylint: disable=invalid-name
-    return [float(x) for x in at_children[:2]]
 
 def _get_at_node(node):
     if not isinstance(node, KicadPcbNode):

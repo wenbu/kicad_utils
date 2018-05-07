@@ -3,6 +3,8 @@ Classes and functions related to .kicad_pcb files. Includes a KicadPcbNode
 class and functions to parse and write .kicad_pcb files.
 '''
 import shlex
+from nodes.Transform2d import Transformable
+from numbers import Number
 
 OUTPUT_INDENT_SIZE = 2
 
@@ -29,6 +31,18 @@ class KicadPcbNode(object):
         '''
         self.children.append(_coerce(child))
 
+    def add_named_child(self, name, values):
+        '''
+        Add a named child to this KicadPcbNode. This child becomes a KicadPcbNode itself
+        with the specified name, and whose children are the specified values.
+        '''
+        named_child = KicadPcbNode(name)
+        if hasattr(values, '__len__') and not isinstance(values, str):
+            named_child.children = list(values)
+        else:
+            named_child.children = [values]
+        self.children.append(named_child)
+
     def get_children_with_name(self, name):
         '''
         Return a list of children of this KicadPcbNode that are themselves
@@ -49,6 +63,59 @@ class KicadPcbNode(object):
                             (self.name, len(children_with_name), name))
 
         return children_with_name[0]
+
+    def __getitem__(self, key):
+        nodes_with_name = self.get_children_with_name(key)
+        if len(nodes_with_name) == 1:
+            children = nodes_with_name[0].children
+            if len(children) == 1:
+                return children[0]
+            else:
+                return children
+        else:
+            raise NotImplementedError(('There are %d children with the name %s.' +
+                                       ' Not supported for now.') % (len(nodes_with_name), key))
+
+    def __setitem__(self, key, value):
+        existing_value = self.get_children_with_name(key)
+        if len(existing_value) == 1:
+            # child with unique name
+            children = existing_value[0].children
+            if not isinstance(value, str) and not hasattr(value, '__len__'):
+                if len(children) == 1:
+                    # Do a type check to ensure we aren't setting a string to
+                    # a number or vice-versa.
+                    existing_value_is_numeric = isinstance(children[0], Number)
+                    new_value_is_numeric = isinstance(value, Number)
+                    if existing_value_is_numeric == new_value_is_numeric:
+                        children[0] = value
+                    else:
+                        raise Exception('Types don\'t match. Existing value: %s, new value: %s',
+                                        str(children[0]), str(value))
+                else:
+                    raise Exception('Existing value has length %d.', len(existing_value))
+            else:
+                if len(children) == len(value):
+                    types_match = True
+                    for existing_child, new_child in zip(children, value):
+                        existing_child_is_numeric = isinstance(existing_child, Number)
+                        new_child_is_numeric = isinstance(new_child, Number)
+                        if existing_child_is_numeric != new_child_is_numeric:
+                            types_match = False
+                            break
+                    if types_match:
+                        existing_value[0].children = list(value)
+                    else:
+                        raise Exception('Types don\'t match. Existing value: %s, new value: %s',
+                                        str(children), str(value))
+                else:
+                    raise Exception('Lengths don\'t match. Existing length: %d, new length: %d',
+                                    len(children), len(value))
+        else:
+            # TODO: what to do if there are multiple children with the same name?
+            # e.g. fp_text, fp_line, pad
+            raise NotImplementedError(('There are multiple children with the name %s.' +
+                                       ' Not supported for now.') % key)
 
     def __str__(self):
         return '<%s> %s' % (self.name, [c.__str__() for c in self.children])
@@ -157,6 +224,8 @@ def _handle_arg(token, nodes_in_progress):
 def _coerce(child):
     if isinstance(child, KicadPcbNode):
         return child
+    elif hasattr(child, '_node'):
+        return child._node
 
     try:
         return int(child)

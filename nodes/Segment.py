@@ -2,9 +2,9 @@
 Classes and functions related to kicad_pcb segment nodes.
 '''
 import math
-from KicadPcbNode import find_nodes
+from nodes.KicadPcbNode import find_nodes, KicadPcbNode
 from numpy import array
-from Transform2d import Transformable, get_rotation_matrix, get_translation_matrix
+from nodes.Transform2d import Transformable, get_rotation_matrix, get_translation_matrix
 
 def find_segments(nodes):
     ''' Get a list of Segments from a list of KicadPcbNodes. '''
@@ -27,17 +27,24 @@ class Segment(Transformable):
         '''
         self._node = node
 
-        start = node.get_child_with_name('start')
-        self.start = array(start.children[0:2] + [1])
+        self.start = array(node['start'][0:2] + [1])
+        self.end = array(node['end'][0:2] + [1])
+        self.width = node['width']
+        self.layer = node['layer']
+        self.net = node['net']
 
-        end = node.get_child_with_name('end')
-        self.end = array(end.children[0:2] + [1])
-
-        width = node.get_child_with_name('width')
-        self.width = width.children[0]
-
-        layer = node.get_child_with_name('layer')
-        self.layer = layer.children[0]
+    @classmethod
+    def new_segment(cls, start=(0.0, 0.0), end=(0.0, 0.0), width=0.254, layer='', net=0):
+        '''
+        Create a new segment.
+        '''
+        node = KicadPcbNode('segment')
+        node.add_named_child('start', start)
+        node.add_named_child('end', end)
+        node.add_named_child('width', width)
+        node.add_named_child('layer', layer)
+        node.add_named_child('net', net)
+        return cls(node)
 
     def transform(self, t=(0, 0), r=0, rp=(0, 0)):
         T = get_translation_matrix(t=t)
